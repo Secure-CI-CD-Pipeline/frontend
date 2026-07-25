@@ -13,19 +13,12 @@ pipeline {
             }
         }
 
-        stage('Verify Environment') {
+        stage('Verify Docker') {
             steps {
-                sh 'node --version'
-                sh 'npm --version'
                 sh 'docker --version'
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                sh 'npm install'
-            }
-        }
 
         stage('Build Docker Image') {
             steps {

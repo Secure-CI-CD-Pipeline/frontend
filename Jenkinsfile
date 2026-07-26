@@ -2,7 +2,17 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "sampadasupriya/secure-event-client:v3-fixed"
+
+        IMAGE_NAME = "yourdockerhubusername/secure-event-client"
+        IMAGE_TAG = "v1.${BUILD_NUMBER}"
+
+        SONARQUBE_ENV = "SonarQube"
+
+        DOCKER_CREDS = "dockerhub-credentials"
+    }
+
+    tools {
+        nodejs "NodeJS"
     }
 
     stages {
@@ -13,34 +23,97 @@ pipeline {
             }
         }
 
-        stage('Verify Docker') {
+        stage('Install Dependencies') {
             steps {
-                sh 'docker --version'
+                sh 'npm install'
             }
         }
 
+        stage('Static Code Analysis') {
+            steps {
+                withSonarQubeEnv("${SONARQUBE_ENV}") {
+
+                    sh '''
+                    sonar-scanner \
+                    -Dsonar.projectKey=secure-event-client \
+                    -Dsonar.projectName=secure-event-client \
+                    -Dsonar.sources=. \
+                    -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+                    '''
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $IMAGE_NAME .'
+                sh """
+                docker build \
+                -t ${IMAGE_NAME}:${IMAGE_TAG} \
+                .
+                """
             }
         }
 
-        stage('Verify Docker Image') {
+        stage('Trivy Vulnerability Scan') {
             steps {
-                sh 'docker images | grep secure-event-client'
+
+                sh """
+                mkdir -p trivy-report
+
+                trivy image \
+                --severity HIGH,CRITICAL \
+                --exit-code 1 \
+                --format table \
+                --output trivy-report/report.txt \
+                ${IMAGE_NAME}:${IMAGE_TAG}
+                """
+            }
+        }
+
+        stage('Archive Trivy Report') {
+            steps {
+                archiveArtifacts artifacts: 'trivy-report/report.txt'
+            }
+        }
+
+        stage('Push Docker Image') {
+
+            steps {
+
+                withDockerRegistry(
+                    credentialsId: "${DOCKER_CREDS}",
+                    url: ''
+                ) {
+
+                    sh """
+                    docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                    """
+                }
             }
         }
 
     }
 
     post {
+
         success {
-            echo "Frontend Docker Image Built Successfully"
+            echo "CI Pipeline Completed Successfully."
         }
 
         failure {
-            echo "Frontend Pipeline Failed"
+            echo "Pipeline Failed."
+        }
+
+        always {
+            cleanWs()
         }
     }
 }

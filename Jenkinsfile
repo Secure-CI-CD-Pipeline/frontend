@@ -32,14 +32,16 @@ pipeline {
         stage('Static Code Analysis') {
             steps {
                 withSonarQubeEnv("${SONARQUBE_ENV}") {
-
-                    sh '''
-                    sonar-scanner \
-                    -Dsonar.projectKey=secure-event-client \
-                    -Dsonar.projectName=secure-event-client \
-                    -Dsonar.sources=. \
-                    -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-                    '''
+            script {
+                def scannerHome = tool 'SonarScanner'
+                sh """
+                ${scannerHome}/bin/sonar-scanner \
+                -Dsonar.projectKey=secure-event-client \
+                -Dsonar.projectName=secure-event-client \
+                -Dsonar.sources=. \
+                -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+                """
+                    }
                 }
             }
         }

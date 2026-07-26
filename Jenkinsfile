@@ -3,7 +3,7 @@ pipeline {
 
     environment {
 
-        IMAGE_NAME = "sampadasupriya/secure-event-client:v3-fixed"
+        IMAGE_NAME = "sampadasupriya/secure-event-client"
         IMAGE_TAG = "v1.${BUILD_NUMBER}"
 
         SONARQUBE_ENV = "SonarQube"

@@ -47,6 +47,7 @@ pipeline {
             steps {
                 sh """
                 docker build \
+                --build-arg VITE_API_URL=http://<TUMHARA-PUBLIC-IP>:30500/api \
                 -t ${IMAGE_NAME}:${IMAGE_TAG} \
                 .
                 """

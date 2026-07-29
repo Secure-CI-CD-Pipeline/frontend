@@ -47,7 +47,7 @@ pipeline {
             steps {
                 sh """
                 docker build \
-                --build-arg VITE_API_URL=http://54.183.171.141:30500/api \
+                --build-arg VITE_API_URL=/api \
                 -t ${IMAGE_NAME}:${IMAGE_TAG} \
                 .
                 """

@@ -68,7 +68,7 @@ pipeline {
         }
         stage('Archive Trivy Report') {
             steps {
-                archiveArtifacts artifacts: 'trivy-report/report.txt'
+                archiveArtifacts artifacts: 'trivy-report/report.txt, trivy-report/ai-summary.txt'
             }
         }
 

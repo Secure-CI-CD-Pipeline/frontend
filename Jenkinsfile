@@ -85,19 +85,6 @@ pipeline {
             """
             }
         }
-
-        stage('OWASP ZAP DAST Scan') {
-            steps {
-                sh """
-                mkdir -p zap-report
-                docker run --rm --network kind \
-                -v \$(pwd)/zap-report:/zap/wrk/:rw \
-                -t ghcr.io/zaproxy/zaproxy:stable \
-                zap-baseline.py -t http://172.18.0.3:30080 -r zap-report.html || true
-                """
-                archiveArtifacts artifacts: 'zap-report/zap-report.html', allowEmptyArchive: true
-            }
-        }
         
         stage('Push Docker Image') {
             steps {

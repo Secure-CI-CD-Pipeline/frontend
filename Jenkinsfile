@@ -76,7 +76,7 @@ pipeline {
             steps {
                 sh """
                 REPORT=\$(cat trivy-report/report.txt | head -c 6000)
-                curl -s -m 60 -X POST http://localhost:11434/api/generate \
+                curl -s -m 60 -X POST http://172.18.0.1:11434/api/generate \
                 -H "Content-Type: application/json" \
                 -d "\$(jq -n --arg data "\$REPORT" '{model:"llama3.2", stream:false, prompt:("You are a security assistant analyzing the Trivy scan for ${IMAGE_NAME}:${IMAGE_TAG}. Read this report and: 1) List only CRITICAL vulnerabilities that need immediate fixing 2) Give a one-line summary for the rest. Keep it short and clear.\\n\\n" + \$data)}')" \
                 | jq -r '.response' > trivy-report/ai-summary.txt
